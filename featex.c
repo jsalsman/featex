@@ -1,7 +1,7 @@
 
-// compile with: gcc -I/usr/local/include/pocketsphinx -I/usr/local/include/sphinxbase -I ~/src/ps/pocketsphinx/src/libpocketsphinx -o featex featex.c -lpocketsphinx -lsphinxbase -lm
-
-// run with e.g.: for f in *.wav ; do w=`echo $f | sed 's/-.*-.*$//'` ; u=`echo $f | sed 's/.wav$//'` ; sox $f -r16k -ts16 -c1 featex.raw ; echo -n ' '$u '-> ' | tee /dev/tty ; ./featex $w 2>>featex.log | tee /dev/tty ; done | awk -F'[ -]' '$2 != w {w = $2; print "word", ++n ":", w, "phonemes:", (NF-7)/4, "featuresPer: 4 plus: 1"}{print}' > featex.txt
+// featex.c - PocketSphinx phonetic feature extraction for intelligibility prediction and remediation
+// by James Salsman, July-August 2017
+// released under the MIT open source license
 
 #define INFILENAME "featex.raw"
 #define FRATE 65
