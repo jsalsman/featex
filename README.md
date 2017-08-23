@@ -33,4 +33,6 @@ To compile and run, you need to install CMU PocketSphinx, e.g.:
     
     ./featex we drank tea in the afternoon and watched tv
 
-Make sure those `-I` include paths and the `#define MODELDIR` directive near the top of featex.c correctly identify where the include files, libraries, and en-us model files were actually installed. The numeric feature stream goes to standard output, and verbose debugging output goes to stderr, so in production you might likely run3 it with `2>/dev/null`.
+Make sure those `-I` include paths and the `#define MODELDIR` directive near the top of featex.c correctly identify where the include files, libraries, and en-us model files were actually installed. The numeric feature stream goes to standard output, and verbose debugging output goes to stderr, so in production you might likely run it with `2>/dev/null`.
+
+The `Spoken-English-Intelligibility-Remediation.pdf` file has more information.
