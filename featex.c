@@ -320,7 +320,7 @@ main(int argc, char *argv[])
             }
             nb = ps_nbest_next(nb);
         }
-        if (!found) k = 42; // zero for bad recognition results or no match
+        if (!found) j = 42; // zero for bad recognition results or no match
         fprintf(stderr, "%s: SUBSTITUTION: %.3f\n", argv[0], (42.0 - j) / 42.0);
         printf(" %.3f", (42.0 - j) / 42.0);
 
@@ -440,7 +440,7 @@ main(int argc, char *argv[])
             if (k > 160) k = 160; // clamp
         }
         fprintf(stderr, "%s: INS/DEL: %.3f\n", argv[0], (160.0 - k) / 160);
-        printf(" %.3f", (160.0 - k) / 160);
+        printf(" %.3f", (160.0 - k) / 160.0);
 
         hash_table_empty(hyptbl);
     }
