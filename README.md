@@ -7,7 +7,7 @@ To compile and run, you need to install CMU PocketSphinx, e.g., on redhat/centos
 
 or, on debian/ubuntu/mint:
 
-    sudo apt-get install svn autoconf libtool automake bison python-dev swig
+    sudo apt-get install subversion autoconf libtool automake bison python-dev swig
 
 then:
 
