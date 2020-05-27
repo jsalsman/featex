@@ -44,7 +44,7 @@ static struct argp_option options[] =
         {"phonemes", 'p', 0, 0, "Toggle play phonemes"},
         {"triphones", 't', 0, 0, "Toggle play triphones"},
         {"diphones", 'd', 0, 0, "Toggle play diphones"},
-        {"phrase", 'P', "'QUOTE SURROUNDED PHRASE'", 0, "Input phrase"},
+        {"phrase", 'P', "'PHRASE'", 0, "Input phrase"},
         {0}};
 
 /*
