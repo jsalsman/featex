@@ -3,10 +3,10 @@
 // by James Salsman, July-August 2017
 // released under the MIT open source license
 
-#define INFILENAME "featex.raw"
+// #define INFILENAME "featex.raw"
 #define FRATE 65
 #define MODELDIR "/usr/local/share/pocketsphinx/model/en-us/en-us"
-#define DICTNAME "combo.dict"
+// #define DICTNAME "combo.dict"
 
 #include <pocketsphinx.h>
 #include "ps_alignment.h"
@@ -17,9 +17,125 @@
 
 #include <ctype.h>
 #include <math.h>
+#include <argp.h>
+#include <stdbool.h>
+#include <stdlib.h>
 
-int main(int argc, char *argv[])
+#include <stdio.h>
+#include <argp.h>
+#include <string.h>
+
+const char *argp_program_version =
+    "Featex 0.1";
+
+const char *argp_program_bug_address =
+    "<joshua.gf.arul@gmail.com>";
+
+/* This structure is used by main to communicate with parse_opt. */
+struct arguments
 {
+    char *COMBO;
+    char *INFILE;
+    int PLAY;
+    char *PHRASE;
+};
+
+/*
+   OPTIONS.  Field 1 in ARGP.
+   Order of fields: {NAME, KEY, ARG, FLAGS, DOC}.
+*/
+static struct argp_option options[] =
+    {
+        {"combo", 'c', "COMBO_PATH", 0, "Path to combo.dict."},
+        {"infile", 'i', "INFILE_PATH", 0, "Path to input raw file."},
+        {"utterance", 'u', 0, 0, "Toggle play utterances"},
+        {"word", 'w', 0, 0, "Toggle play words"},
+        {"phonemes", 'p', 0, 0, "Toggle play phonemes"},
+        {"triphones", 't', 0, 0, "Toggle play triphones"},
+        {"diphones", 'd', 0, 0, "Toggle play diphones"},
+        {"phrase", 'P', "'QUOTE SURROUNDED PHRASE'", 0, "Input phrase"},
+        {0}};
+
+/*
+   PARSER. Field 2 in ARGP.
+   Order of parameters: KEY, ARG, STATE.
+*/
+static error_t
+parse_opt(int key, char *arg, struct argp_state *state)
+{
+    struct arguments *arguments = state->input;
+
+    switch (key)
+    {
+    case 'c':
+        arguments->COMBO = arg;
+        break;
+    case 'i':
+        arguments->INFILE = arg;
+        break;
+    case 'P':
+        arguments->PHRASE = arg;
+        break;
+    case 'u':
+        arguments->PLAY |= 1;
+        break;
+    case 'w':
+        arguments->PLAY |= 2;
+        break;
+    case 'p':
+        arguments->PLAY |= 4;
+        break;
+    case 't':
+        arguments->PLAY |= 8;
+        break;
+    case 'd':
+        arguments->PLAY |= 16;
+        break;
+
+    default:
+        return ARGP_ERR_UNKNOWN;
+    }
+    return 0;
+}
+
+/*
+  DOC.  Field 4 in ARGP.
+  Program documentation.
+*/
+static char doc[] =
+    "featex -- PocketSphinx phonetic feature extraction for intelligibility prediction and remediation";
+
+/*
+   The ARGP structure itself.
+*/
+static struct argp argp = {options, parse_opt, 0, doc};
+
+int main(int argc, char **argv)
+{
+
+    struct arguments arguments;
+
+    /* Set argument defaults */
+    arguments.COMBO = "combo.dict";
+    arguments.INFILE = "featex.raw";
+    arguments.PHRASE = "";
+    arguments.PLAY = 0;
+
+    /* Where the magic happens */
+    argp_parse(&argp, argc, argv, 0, 0, &arguments);
+
+    if (arguments.PHRASE == "")
+    {
+        fprintf(stderr, "Missing phrase, ensure you used -P\n");
+        exit(-1);
+    }
+
+    /* Debug - Print argument values */
+    // printf("alpha = %s\nbravo = %s\nPLAY = %i\nPHRASE = %s",
+    //        arguments.COMBO, arguments.INFILE, arguments.PLAY, arguments.PHRASE);
+
+    // exit(0);
+
     ps_decoder_t *ps;
     dict_t *dict;
     dict2pid_t *d2p;
@@ -34,7 +150,8 @@ int main(int argc, char *argv[])
     char *fbuf, *fbip, *obuf;
     size_t nread;
     int16 const *bptr;
-    int sz, nfr, wend, n, maxdur, i, j, k, play, found;
+    int sz, nfr, wend, n, maxdur, i, j, k, found;
+    int play = arguments.PLAY;
     ps_alignment_entry_t *ae;
     char grammar[1000], target[10], frates[10];
     char *p, *q, *r; // string manipulation pointers for constructing grammar
@@ -48,59 +165,13 @@ int main(int argc, char *argv[])
         int start, dur, cipid, score;
     } * algn;
 
-    if (argc < 2 || (*argv[1] == '-' && (*(argv[1] + 1) != 'p' || argc < 3)))
-    {
-        fprintf(stderr, "usage: %s [-p[u][w][p][t][d]] word....\n"
-                        "-p: play [u]tterance, [w]ord(s), [p]honemes (default), "
-                        "[t]riphones, and/or [d]iphones.\n",
-                argv[0]);
-        return 1;
-    }
-
-    play = 0; // by default play nothing
-    if (*argv[1] == '-' && *(argv[1] + 1) == 'p')
-    {
-        play = 4; // just '-p' means to only play phonemes
-        if (*(argv[1] + 2))
-        {
-            play = 0;
-            p = argv[1] + 1;
-            while (*++p)
-            {
-                if (*p == 'u')
-                    play |= 1; // utterance
-                else if (*p == 'w')
-                    play |= 2; // word(s)
-                else if (*p == 'p')
-                    play |= 4; // phonemes
-                else if (*p == 't')
-                    play |= 8; // triphones
-                else if (*p == 'd')
-                    play |= 16; // diphones
-                else
-                {
-                    fprintf(stderr, "%s: unrecogized -p option selection;\n"
-                                    "-p: play [u]tterance, [w]ord(s), [p]honemes (default),"
-                                    " [t]riphones, and/or [d]iphones.\n",
-                            argv[0]);
-                    return 1;
-                }
-            }
-        }
-        i = 2;
-    }
-    else
-    {
-        i = 1;
-    }
-
 #define FPS (16000 / FRATE * 2)
 
     sprintf(frates, "%d", FRATE);
     frated = (double)FRATE;
     config = cmd_ln_init(NULL, ps_args(), FALSE,
                          "-hmm", MODELDIR,
-                         "-dict", DICTNAME,
+                         "-dict", arguments.COMBO,
                          "-samprate", "16000",
                          "-topn", "64", // TODO parameterize for proper optimization
                          "-beam", "1e-57",
@@ -121,27 +192,46 @@ int main(int argc, char *argv[])
 
     al = ps_alignment_init(d2p);
     ps_alignment_add_word(al, dict_wordid(dict, "<s>"), 0);
-    while (i < argc)
+
+    char words[50][50];
+    int letter, cnt;
+    letter = cnt = 0;
+    for (i = 0; i < strlen(arguments.PHRASE); i++)
     {
-        n = dict_wordid(dict, argv[i]);
+        if (arguments.PHRASE[i] == ' ' || arguments.PHRASE[i] == '\0')
+        {
+            words[cnt][letter] = '\0';
+            cnt++;      //for next word
+            letter = 0; //for next word, init index to 0
+        }
+        else
+        {
+            words[cnt][letter] = arguments.PHRASE[i];
+            letter++;
+        }
+    }
+
+    for (int i = 0; i < cnt; i++)
+    {
+        n = dict_wordid(dict, words[i]);
         if (n < 0)
         {
-            fprintf(stderr, "%s: unrecogized word: %s\n", argv[0], argv[i]);
+            fprintf(stderr, "%s: unrecogized word: %s\n", argv[0], words[i]);
             return 3;
         }
         ps_alignment_add_word(al, n, 0);
-        i++;
     }
+
     ps_alignment_add_word(al, dict_wordid(dict, "</s>"), 0);
     ps_alignment_populate(al);
 
     search = state_align_search_init("state_align", config, acmod, al);
 
-    rawfh = fopen(INFILENAME, "rb");
+    rawfh = fopen(arguments.INFILE, "rb");
     if (!rawfh)
     {
         fprintf(stderr, "%s: can't open audio input file: %s\n",
-                argv[0], INFILENAME);
+                argv[0], arguments.INFILE);
         return 4;
     }
     fseek(rawfh, 0L, SEEK_END);
