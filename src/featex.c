@@ -1,29 +1,20 @@
-
-// featex.c - PocketSphinx phonetic feature extraction for intelligibility prediction and remediation
-// by James Salsman, July-August 2017
-// released under the MIT open source license
-
-// #define INFILENAME "featex.raw"
 #define FRATE 65
 #define MODELDIR "/usr/local/share/pocketsphinx/model/en-us/en-us"
-// #define DICTNAME "combo.dict"
-
-#include <pocketsphinx.h>
-#include "ps_alignment.h"
-
-#include "state_align_search.h"
-#include "pocketsphinx_internal.h"
-#include "ps_search.h"
 
 #include <ctype.h>
 #include <math.h>
 #include <argp.h>
 #include <stdbool.h>
 #include <stdlib.h>
-
 #include <stdio.h>
 #include <argp.h>
 #include <string.h>
+
+#include "ps_alignment.h"
+#include <pocketsphinx.h>
+#include "state_align_search.h"
+#include "pocketsphinx_internal.h"
+#include "ps_search.h"
 
 const char *argp_program_version =
     "Featex 0.1";
