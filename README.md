@@ -99,3 +99,11 @@ View the built-in help with:
 The numeric feature stream goes to standard output, and verbose debugging output goes to stderr, so in production you will likely have to run it with `2>/dev/null`. If you don't want to prepend the LD_LIBRARY_PATH, which is necessary on redhat but not debian variants, see e.g. https://serverfault.com/a/372998
 
 More info is documented in this [paper](assets/Spoken-English-Intelligibility-Remediation.pdf), and also [here](http://arxiv.org/abs/1709.01713).
+
+A demo can be run using `assets/combo.dict` and `assets/featex.raw`:
+
+    $ ./featex.o -c assets/combo.dict -i assets/featex.raw -P 'we drank tea in the afternoon and watched tv`
+
+If you only want to see the end result and filter out all the debug data, redirect `stderr`:
+
+    $ ./featex.o -c assets/combo.dict -i assets/featex.raw -P 'we drank tea in the afternoon and watched tv` 2> /dev/null
