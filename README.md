@@ -28,7 +28,7 @@ Sphinxbase:
 
 Pocketsphinx:
 
-    $ svn checkout svn://svn.code.sf.net/p/cmusphinx/code/trunk/ pocketsphinx
+    $ svn checkout svn://svn.code.sf.net/p/cmusphinx/code/trunk/pocketsphinx
     $ cd pocketsphinx
     $ ./autogen.sh
     $ make
